@@ -12,18 +12,18 @@ class RoomCubit extends Cubit<RoomState> {
   FireBaseData fireBaseData;
   RoomCubit(this.fireBaseData) : super(RoomInitial());
 
-  StreamSubscription<List<RoomModel>>? streamSubscription;
 
-  Future createRoom(String userId)async{
+  Future<void> createRoom(String userId)async{
     emit(RoomLoading());
     try{
      final roomId = await fireBaseData.createRoom(userId);
-     RoomCreated(roomId);
+     emit(RoomCreated(roomId));
     }
     catch(error){
       emit(RoomFailure("error is $error"));
     }
   }
+  StreamSubscription<List<RoomModel>>? streamSubscription;
 
   void getRooms(){
     streamSubscription = fireBaseData.getAllRooms().listen((rooms){
@@ -36,11 +36,11 @@ class RoomCubit extends Cubit<RoomState> {
 
   }
 
-  @override
-  Future<void> close() {
-    streamSubscription?.cancel();
-    return super.close();
-  }
+  // @override
+  // Future<void> close() {
+  //   streamSubscription?.cancel();
+  //   return super.close();
+  // }
 
 
 }

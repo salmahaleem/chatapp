@@ -39,10 +39,8 @@ class FireBaseData{
   }
 
   Future createRoom(String userId) async {
-
+   try{
     final sortMember = [myUserId , userId]..sort((a,b)=>a.compareTo(b));
-
-
 
     CollectionReference chatroom =await fireStore.collection('rooms');
     QuerySnapshot existRoom = await chatroom.where('members', isEqualTo: sortMember).get();
@@ -50,34 +48,37 @@ class FireBaseData{
     if(existRoom.docs.isNotEmpty){
       return existRoom.docs.first.id;
     }else {
-      String chatRoomId = fireStore.collection('rooms').doc().id;
-      try {
-        RoomModel r = RoomModel(
-            id: chatRoomId,
-            lastMessage: "",
-            lastMessageTime: DateTime.now().toIso8601String(),
-            members: sortMember,
-            createdAt: DateTime.now().toIso8601String(),
-        );
+      String chatRoomId = fireStore
+          .collection('rooms')
+          .doc()
+          .id;
 
-        await fireStore.collection('rooms').doc(chatRoomId).set(r.toJson());
-      } catch (error) {
+      RoomModel r = RoomModel(
+        id: chatRoomId,
+        lastMessage: "",
+        lastMessageTime: DateTime.now().toIso8601String(),
+        members: sortMember,
+        createdAt: DateTime.now().toIso8601String(),
+      );
+
+      await fireStore.collection('rooms').doc(chatRoomId).set(r.toJson());
+    }
+   } catch (error) {
         return(error.toString());
       }
     }
 
-
-  }
   
   Stream<List<RoomModel>>getAllRooms(){
-    return fireStore.collection('users')
-    .where('Members',arrayContains: myUserId)
+    return fireStore.collection('rooms')
+    .where('members',arrayContains: myUserId)
     .snapshots()
-        .map((snapshot){
-          return snapshot.docs
+        .map((snapshot)=>
+           snapshot.docs
               .map((doc)=>RoomModel.fromJson(doc.data()))
-              .toList();
-    });
+              .toList()..sort((a,b)=>a.lastMessageTime.compareTo(a.lastMessageTime))
+    );
+
   }
 
 }
